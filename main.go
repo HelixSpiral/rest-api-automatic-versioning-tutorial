@@ -42,18 +42,23 @@ func handleGetItems(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, err)
 	}
 
+	json.Unmarshal(fileData, &items)
+
 	pathSplit := strings.Split(r.URL.Path, "/")
 
 	// If the third value is nothing then we didn't specify an item
 	// So we return everything
 	if pathSplit[3] == "" {
-		fmt.Fprintf(w, "%s", fileData)
+		jsonItems, err := json.MarshalIndent(items["Items"], "", "\t")
+		if err != nil {
+			fmt.Fprintln(w, err)
+		}
+
+		fmt.Fprintf(w, "%s", jsonItems)
 		return
 	}
 
 	itemToGet := pathSplit[3]
-
-	json.Unmarshal(fileData, &items)
 
 	for _, item := range items["Items"] {
 		if item.ID == itemToGet {
