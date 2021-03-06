@@ -2,11 +2,13 @@
     "Items":[
         {
             "ID": "1",
-            "Name": "Item 1"
+            "Name": "Item 1",
+            "Description": "This is the first item description"
         },
         {
             "ID": "2",
-            "Name": "Item 2"
+            "Name": "Item 2",
+            "Description": "This is the second item description"
         }
     ]
 }

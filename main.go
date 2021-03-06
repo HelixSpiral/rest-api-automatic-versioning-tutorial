@@ -9,8 +9,9 @@ import (
 
 // Item struct holds the information for a specific item
 type Item struct {
-	ID   string `json:"ID,omitempty"`
-	Name string `json:"Name,omitempty"`
+	ID          string `json:"ID,omitempty"`
+	Name        string `json:"Name,omitempty"`
+	Description string `json:"Description,omitempty"`
 }
 
 // APIVersion holds the version of the API we're building.
