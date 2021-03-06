@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
+
 	"rest-api-automatic-versioning-tutorial/internal/database"
 )
 
@@ -29,8 +32,9 @@ func handleAPIRoot(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "API Version: %s", APIVersion)
 }
 
-// handleGetAllItems handles get requests to: /{version}/items
-func handleGetAllItems(w http.ResponseWriter, r *http.Request) {
+// handleGetItems handles get requests to: /{version}/items/...
+func handleGetItems(w http.ResponseWriter, r *http.Request) {
+	var items map[string][]Item
 	db := database.New("db.json")
 
 	fileData, err := db.ReadFullDB()
@@ -38,7 +42,33 @@ func handleGetAllItems(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, err)
 	}
 
-	fmt.Fprintf(w, "%s", fileData)
+	pathSplit := strings.Split(r.URL.Path, "/")
+
+	// If the third value is nothing then we didn't specify an item
+	// So we return everything
+	if pathSplit[3] == "" {
+		fmt.Fprintf(w, "%s", fileData)
+		return
+	}
+
+	itemToGet := pathSplit[3]
+
+	json.Unmarshal(fileData, &items)
+
+	for _, item := range items["Items"] {
+		if item.ID == itemToGet {
+			jsonItem, err := json.MarshalIndent(item, "", "\t")
+			if err != nil {
+				fmt.Fprintln(w, err)
+			}
+
+			fmt.Fprintf(w, "%s", jsonItem)
+			return
+		}
+
+	}
+
+	fmt.Fprintln(w, "No item found:", itemToGet)
 }
 
 func main() {
@@ -51,7 +81,7 @@ func main() {
 	// Setup our handlers
 	http.HandleFunc("/", handleRoot)
 	http.HandleFunc(fmt.Sprintf("/%s", APIVersion), handleAPIRoot)
-	http.HandleFunc(fmt.Sprintf("/%s/items", APIVersion), handleGetAllItems)
+	http.HandleFunc(fmt.Sprintf("/%s/items/", APIVersion), handleGetItems)
 
 	// Listen and serve until we exit
 	log.Fatal(http.ListenAndServe(":80", nil))
